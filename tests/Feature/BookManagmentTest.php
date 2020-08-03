@@ -6,7 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Books;
 
-class BookReservationTest extends TestCase
+class BookManagmentTest extends TestCase
 {
     use RefreshDatabase;
     /** @test */
@@ -17,9 +17,10 @@ class BookReservationTest extends TestCase
             'title' => 'Cool TItle',
             'author' => 'Jubayer'
         ]);
-
-        $response->assertOk();
+        $book = Books::first();
+        //$response->assertOk(); //enable causes 302 error
         $this->assertCount(1, Books::all());
+        $response->assertRedirect($book->path());
     }
     /** @test */
     public function aTitleIsRequired()
@@ -61,5 +62,21 @@ class BookReservationTest extends TestCase
 
         $this->assertEquals('New Title', Books::first()->title);
         $this->assertEquals('New Author', Books::first()->author);
+        $response->assertRedirect($book->path());
+    }
+
+    /** @test */
+    function aBookCanBeDeleted()
+    {
+        // $this->withoutExceptionHandling();
+        $this->post('/books', [
+            'title' => 'Cool title',
+            'author' => 'Jubayer'
+        ]);
+        $book = Books::first();
+        $this->assertCount(1, Books::all());
+        $response = $this->delete($book->path());
+        $this->assertCount(0, Books::all());
+        $response->assertRedirect('/books');
     }
 }
